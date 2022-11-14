@@ -48,14 +48,14 @@ def open_json(directory, filename):
         Second = P0[-1][13:15]              # select the day in the Filename
 
         # DeviceInformation: Date of Device Measurement and Type of Stimulator 
-        MeasureDate = "Not available"       # not available unless available 
-        StimulatorType = "Not available"    # not available unless available 
+        MeasureDate = f"Not available"       # not available unless available 
+        StimulatorType = f"Not available"    # not available unless available 
         if 'DeviceInformation' in data: 
             MeasureDate = data['DeviceInformation']['Final']['DeviceDateTime'].replace("T", " ").replace("Z", "")
             MeasureDate = datetime.strptime(MeasureDate, '%Y-%m-%d %H:%M:%S').date()
             StimulatorType = data['DeviceInformation']['Initial']['Neurostimulator']
         
-            print(StimulatorType)
+            ## print(StimulatorType)
         # BatteryInformation
         # GroupUsagePercentage 
         # LeadConfiguration
@@ -65,6 +65,8 @@ def open_json(directory, filename):
 
         # BrainsenseSetup (sensechanneltests + calibrationtests)
         P6channel = []
+        P6rec = []
+        P6time = []
         if "SenseChannelTests" in data:   # Check if SenseChannelTest is in data otherwise go to else
             try:    # When there is just one measurement no loop can be used and there for a try/except statement is used.
                 for channel in data["SenseChannelTests"]:
@@ -83,6 +85,9 @@ def open_json(directory, filename):
                 P6 = f"BrainSense Setup Sense Channel Tests performed on channels:\n\t\t {P6channel}\n\t\tPerformed at {P6time}"
         else:
             P6 = "No BrainSense Setup Sense Channel Tests performed"          # If there is no SenseChannelTest in the data print this line.
+            P6channel = float('nan')
+            P6rec = float('nan')
+            P6time = float('nan')
 
         P7channel = []
         if "CalibrationTests" in data:   # Check if CalibrationTest is in data otherwise go to else
@@ -103,7 +108,9 @@ def open_json(directory, filename):
                 P7 = f"BrainSense Setup Calibration Tests performed on channels:\n\t\t{P7channel}\n\t\tPerformed at {P7time}"
         else:
             P7 = "No BrainSense Setup Calibration Tests performed"          # If there is no SenseChannelTest in the data print this line.
-
+            P7channel = float('nan')
+            P7rec = float('nan')
+            P7time = float('nan')
 
         # Brainsense Survey (LFPmontage (time domain))
         P11channel = []
@@ -127,6 +134,10 @@ def open_json(directory, filename):
                 P11 = f"BrainSense Survey LFP measurement performed on channels:\n\t\t{P11channel}\n\t\tPerformed between {P11time} and {P11time2}"
         else:
             P11 = "No BrainSense Survey LFP measurement performed"          # If there is no IndefiniteStreaming in the data print this line.
+            P11channel = float('nan') 
+            P11rec = float('nan') 
+            P11time = float('nan') 
+            P11time2 = float('nan')
 
         # BrainSense Survey Recording (IndefiniteStreaming)
         P2channel = []
@@ -148,6 +159,9 @@ def open_json(directory, filename):
                 P2 = f"BrainSense Survey Recording (IndefiniteStreaming) performed on channels:\n\t\t{P2channel}\n\t\tPerformed at {P2time} for {P2rec} seconds"
         else:
             P2 = "No BrainSense Survey Recording (IndefiniteStreaming) measurement performed"          # If there is no IndefiniteStreaming in the data print this line.
+            P2channel = float('nan') 
+            P2rec = float('nan') 
+            P2time = float('nan')
 
         # BrainSense Streaming (LFP)
         P1DateTime = []
@@ -161,7 +175,7 @@ def open_json(directory, filename):
                 P1 = f"BrainSense Streaming (LFP) performed at:\n\t\t{P1DateTime}"           # Create sentence which is printed to the txtfile
         else:
             P1 = "No BrainSense Streaming (LFP) measurement performed"       # When BrainSenseLfp is not in data print this line to txtfile
-
+            P1DateTime = float('nan')
 
         # BrainSense Timeline / Events (EventSummary) --> toevoegen aantal events!
         P3 = []
@@ -174,6 +188,11 @@ def open_json(directory, filename):
             P3 = f"EventSummary for timeline started at {P3start} and ended at {P3end} (Total of {P3Days.days} days)"  # Print this line
         else:
             P3 = "No EventSummary available"
+            P3DateEnd = float('nan') 
+            P3DateStart = float('nan') 
+            P3Days = float('nan') 
+            P3end = float('nan') 
+            P3start = float('nan') 
 
         P9 = []
         if "DiagnosticData" in data and "LfpFrequencySnapshotEvents" in data["DiagnosticData"]:
@@ -181,28 +200,43 @@ def open_json(directory, filename):
             P9 = f"Number of events registered by patient: {P9Events}"
         else:
             P9 = f"No events registered by patient"
+            P9Events = float('nan')
 
         # Patient information
         P4 = []
         P5 = []
         if "PatientInformation" in data and "Final" in data["PatientInformation"]:
             P4firstname = data["PatientInformation"]["Final"]["PatientFirstName"]
-            p4lastname = data["PatientInformation"]["Final"]["PatientLastName"]
-            p4patientID = data["PatientInformation"]["Final"]["PatientId"]
-            P4 = f"{P4firstname} {p4lastname}"
-            P5 = f"{p4patientID}"
+            P4lastname = data["PatientInformation"]["Final"]["PatientLastName"]
+            P4patientID = data["PatientInformation"]["Final"]["PatientId"]
+            P4 = f"{P4firstname} {P4lastname}"
+            P5 = f"{P4patientID}"
             if not P5:
                 P5 = f"Not provided"
         else:
             P4 = f"File is anonymized, anonymize ID is: {filename}"
             P5 = "File is anonymized, Patient ID not available"
+            P4firstname = float('nan') 
+            P4lastname = float('nan') 
+            P4patientID = float('nan')
 
-        P10 =[]
-        if "DeviceInformation" in data and "Final" in data["DeviceInformation"] and "Neurostimulator" in data["DeviceInformation"]["Final"]:
-            P10type = data["DeviceInformation"]["Final"]["Neurostimulator"]
-            P10 = f"Neurostimulator type is {P10type}"
-        else:
-            P10 = f"Neurostimulator type is not provided"
-    return(f)
+        ##P10 =[]
+        ##if "DeviceInformation" in data and "Final" in data["DeviceInformation"] and "Neurostimulator" in data["DeviceInformation"]["Final"]:
+            ##P10type = data["DeviceInformation"]["Final"]["Neurostimulator"]
+            ##P10 = f"Neurostimulator type is {P10type}"
+        ##else:
+            ##P10 = f"Neurostimulator type is not provided"
+
+        # Create list for patient with all values
+        list = [MeasureDate, StimulatorType, 
+        P6channel, P6rec, P6time,
+        P7channel, P7rec, P7time,
+        P11channel, P11rec, P11time, P11time2,
+        P2channel, P2rec, P2time,
+        P1DateTime, 
+        P3DateEnd, P3DateStart, P3Days, P3end, P3start, 
+        P9Events, 
+        P4firstname, P4lastname, P4patientID]
+    return(list)
 
 ### create text file
