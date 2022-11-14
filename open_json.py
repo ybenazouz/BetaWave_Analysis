@@ -70,7 +70,7 @@ def open_json(directory, filename):
         if "SenseChannelTests" in data:   # Check if SenseChannelTest is in data otherwise go to else
             try:    # When there is just one measurement no loop can be used and there for a try/except statement is used.
                 for channel in data["SenseChannelTests"]:
-                    P6channel.append(channel["Channel"])                    # Add al Channels to one list
+                    P6channel.append(str(channel["Channel"]))                    # Add al Channels to one list
                 P6time = data["SenseChannelTests"][0]["FirstPacketDateTime"][0:19].replace("T", " ")        # Select datetime
                 P6rec = len(data["SenseChannelTests"][0]["TimeDomainData"]) / data["SenseChannelTests"][0]["SampleRateInHz"]
                 # Calculate the length of the recording
@@ -93,7 +93,7 @@ def open_json(directory, filename):
         if "CalibrationTests" in data:   # Check if CalibrationTest is in data otherwise go to else
             try:    # When there is just one measurement no loop can be used and there for a try/except statement is used.
                 for channel in data["CalibrationTests"]:
-                    P7channel.append(channel["Channel"])                    # Add al Channels to one list
+                    P7channel.append(str(channel["Channel"]))                    # Add al Channels to one list
                 P7time = data["CalibrationTests"][0]["FirstPacketDateTime"][0:19].replace("T", " ")        # Select datetime
                 P7rec = len(data["CalibrationTests"][0]["TimeDomainData"]) / data["CalibrationTests"][0]["SampleRateInHz"]
                 # Calculate the length of the recording
@@ -117,7 +117,7 @@ def open_json(directory, filename):
         if "LfpMontageTimeDomain" in data:   # Check if LfpMontageTimeDomain is in data otherwise go to else
             try:    # When there is just one measurement no loop can be used and there for a try/except statement is used.
                 for channel in data["LfpMontageTimeDomain"]:
-                    P11channel.append(channel["Channel"])                    # Add al Channels to one list
+                    P11channel.append(str(channel["Channel"]))                    # Add al Channels to one list
                 P11time = data["LfpMontageTimeDomain"][0]["FirstPacketDateTime"][0:19].replace("T", " ")        # Select datetime
                 P11time2 = data["LfpMontageTimeDomain"][-1]["FirstPacketDateTime"][0:19].replace("T", " ") 
                 P11rec = len(data["LfpMontageTimeDomain"][0]["TimeDomainData"]) / data["LfpMontageTimeDomain"][0]["SampleRateInHz"]
@@ -144,7 +144,7 @@ def open_json(directory, filename):
         if "IndefiniteStreaming" in data:   # Check if IndefiniteStreaming is in data otherwise go to else
             try:    # When there is just one measurement no loop can be used and there for a try/except statement is used.
                 for channel in data["IndefiniteStreaming"]:
-                    P2channel.append(channel["Channel"])                    # Add al Channels to one list
+                    P2channel.append(str(channel["Channel"]))                    # Add al Channels to one list
                 P2time = data["IndefiniteStreaming"][0]["FirstPacketDateTime"][0:19].replace("T", " ")        # Select datetime
                 P2rec = len(data["IndefiniteStreaming"][0]["TimeDomainData"]) / data["IndefiniteStreaming"][0]["SampleRateInHz"]
                 # Calculate the length of the recording
@@ -184,8 +184,9 @@ def open_json(directory, filename):
             P3end = data["EventSummary"]["SessionEndDate"][0:19].replace("T", " ")            # Select the end of the session
             P3DateStart = date(int(P3start[0:4]), int(P3start[5:7]), int(P3start[8:10]))
             P3DateEnd = date(int(P3end[0:4]), int(P3end[5:7]), int(P3end[8:10]))
-            P3Days = P3DateEnd - P3DateStart
-            P3 = f"EventSummary for timeline started at {P3start} and ended at {P3end} (Total of {P3Days.days} days)"  # Print this line
+            P3delta = P3DateEnd - P3DateStart
+            P3Days = P3delta.days
+            P3 = f"EventSummary for timeline started at {P3start} and ended at {P3end} (Total of {P3Days} days)"  # Print this line
         else:
             P3 = "No EventSummary available"
             P3DateEnd = float('nan') 

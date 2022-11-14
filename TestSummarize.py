@@ -90,17 +90,42 @@ nd.columns = ['MeasureDate', 'StimulatorType',
 
 # Step 5: check data for doubles 
 ad = pd.concat([od, nd], ignore_index=True) # Concatenate old data and new data to check for doubles
+print(ad['P3Days'])
+
+dd = ad.drop(['P6channel', 'P7channel', 'P11channel', 'P2channel'], axis=1)
+ad = ad.drop([1, 2])
 print(ad)
 
-bool_series = ad['MeasureDate'].astype(str).duplicated() #drop_duplicates().index]
+bs = ad['StimulatorType'].astype(str).duplicated()
+bs2 = ad['P6channel'].astype(str).duplicated()
+bs3 = ad['P6rec'].astype(str).duplicated()
+bs4 = ad['P6time'].astype(str).duplicated()
+bs5 = ad['P7channel'].astype(str).duplicated()
+bs8 = ad['P7rec'].astype(str).duplicated()
+bs9 = ad['P7time'].astype(str).duplicated()
+bs10 = ad['P11channel'].astype(str).duplicated()
+bs11 = ad['P11rec'].astype(str).duplicated()
+bs12 = ad['P11time'].astype(str).duplicated()
+bs13 = ad['P11time2'].astype(str).duplicated()
+bs14 = ad['P2channel'].astype(str).duplicated()
+bs15 = ad['P2rec'].astype(str).duplicated()
+bs16 = ad['P2time'].astype(str).duplicated()
+bs17 = ad['P1DateTime'].astype(str).duplicated()
+bs18 = ad['P3DateEnd'].astype(str).duplicated()
+bs19 = ad['P3DateStart'].astype(str).duplicated()
+bs20 = ad['P3Days'].astype(str).duplicated()
+bs21 = ad['P3end'].astype(str).duplicated()
+bs22 = ad['P3start'].astype(str).duplicated()
+bs23 = ad['P9Events'].astype(str).duplicated()
+print(bs,bs2,bs3,bs4,bs5,bs8,bs9,bs10,bs11,bs12,bs13,bs14,bs15,bs16,bs17,bs18,bs19,bs20,bs21,bs22, bs23)
+        #'P4firstname', 'P4lastname', 'P4patientID'].astype(str).duplicated() #drop_duplicates().index]
 # bool_series = ad.duplicated() #(keep='first')   # Remove duplicates
 ## pd.set_option('display.max_columns', None)
 ## ad.head()
-ad2 = ad.iloc[ad['MeasureDate'].astype(str).drop_duplicates().index]
+dd2 = dd.iloc[ad.astype(str).drop_duplicates().index]
 
-print(type[:])
-print(bool_series)
+#print(bool_series)
 ## print(ad['P7time'].to_string(index=False))
-print(ad2)
+print(dd2)
 
 
