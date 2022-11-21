@@ -22,8 +22,10 @@ from tkinter.filedialog import \
     askdirectory  # Show window to select json file to be analyzed
 from tkinter.filedialog import \
     askopenfilename  # Show window to select json file to be analyzed
+import math as math
 
-def open_json(directory, filename):
+def open_json(directory, filename, anonymisation_key):
+    anon = anonymisation_key
     f = os.path.join(directory, filename)
     # checking if it is a file
     if os.path.isfile(f):
@@ -221,15 +223,25 @@ def open_json(directory, filename):
             P4lastname = float('nan') 
             P4patientID = float('nan')
 
-        ##P10 =[]
-        ##if "DeviceInformation" in data and "Final" in data["DeviceInformation"] and "Neurostimulator" in data["DeviceInformation"]["Final"]:
-            ##P10type = data["DeviceInformation"]["Final"]["Neurostimulator"]
-            ##P10 = f"Neurostimulator type is {P10type}"
-        ##else:
-            ##P10 = f"Neurostimulator type is not provided"
+        # Anonymize + arrange 
+        Patient = [] # create studt 
+        for index, row in anon.iterrows():  # Loop through key information 
+            if not math.isnan(row['ID']):
+                # ook if anon is float vlaue voor omzetten integer? maakt dat uit? 
+                id = math.floor(row['ID']) # turn float patient id into integer using numpy series   
+                if id == P4patientID : 
+                    Patient = row['Pseudo']
+            elif row['LastName'] == P4lastname:
+                Patient = row['Pseudo']   
+        else: 
+            Patient = 'Unknown'   
+            # controle of anon_id even lang is als het aantal rijen in pid? 
+            # Controleren of er unknown identity staat etc? 
+            # Controleren of het een onbekende patient naam en id is? In dit geval melding geven om toe te voegen in de key?      
+    #print(anon_id)
 
         # Create list for patient with all values
-        list = [MeasureDate, StimulatorType, 
+        list = [Patient, MeasureDate, StimulatorType, 
         P6channel, P6rec, P6time,
         P7channel, P7rec, P7time,
         P11channel, P11rec, P11time, P11time2,
