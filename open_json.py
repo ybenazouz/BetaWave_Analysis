@@ -24,13 +24,12 @@ from tkinter.filedialog import \
     askopenfilename  # Show window to select json file to be analyzed
 import math as math
 
-def open_json(directory, anonymisation_key):
-    new_data = []  
-    directory_json = pathlib.PurePath(directory, 'new_files')              # generate Path to archive '                                                 # Create list to append lists with data to
+def open_json(directory_json, anonymisation_key):
+    anon = anonymisation_key
+    new_data = [] 
     for filename in os.listdir(directory_json):
+        f = os.path.join(directory_json, filename)
         if filename !='.DS_Store':  
-            anon = anonymisation_key
-            f = os.path.join(directory_json, filename)
             # checking if it is a file
             if os.path.isfile(f):
                 ## print(f)              # print current file path 
@@ -171,7 +170,7 @@ def open_json(directory, anonymisation_key):
                     P1 = "No BrainSense Streaming (LFP) measurement performed"       # When BrainSenseLfp is not in data print this line to txtfile
                     P1DateTime = float('nan')
 
-                # BrainSense Timeline / Events (EventSummary) --> toevoegen aantal events!
+                # BrainSense Timeline / Events (EventSummary) 
                 P3 = []
                 if "EventSummary" in data:                  # Check if EvenSummary is in the data.
                     P3start = data["EventSummary"]["SessionStartDate"][0:19].replace("T", " ")        # Select the start of the session
@@ -231,62 +230,6 @@ def open_json(directory, anonymisation_key):
                     # Controleren of er unknown identity staat etc? 
                     # Controleren of het een onbekende patient naam en id is? In dit geval melding geven om toe te voegen in de key? 
 
-                # Create personal patient directory 
-                pat_dir = pathlib.PurePath(directory,'Patients', Patient)  
-                # anon_dir = pathlib.PurePath(directory,'Anonymous')  
-
-                # Create new .JSON-file 
-                data_anon = data 
-                data_anon["PatientInformation"] = Patient 
-                filename_anon = filename.replace('.json', '')+'_anonymous.json'
-
-                json_name = pathlib.PurePath(pat_dir, filename_anon)
-                with open(json_name, "w") as j:
-                    json.dump(data_anon, j) 
-
-                # Write .TXT-file 
-                filename_txt = filename.replace('.json', '')+'.txt'
-                txt_name = pathlib.PurePath(pat_dir, filename_txt)
-                with open(txt_name, "w+") as t:
-                    t.write(
-                        f"General file information:\n"
-                        "\n"
-                        f"\tPatient name: {P4}\n"
-                        "\n"
-                        f"\tPatient ID: {P5}\n"
-                        "\n"
-                        f"\tDate of measurement: {MeasureDate}\n"
-                        "\n"
-                        "\n"
-                        f"In-office measurements performed are:\n"
-                        "\n"
-                        f"\tBrainSense Setup"
-                        "\n"
-                        f"\t\t{P6}\n"           # SenseChannelTest measurements
-                        "\n"
-                        f"\t\t{P7}\n"           # CalibrationTest measurements
-                        "\n"
-                        f"\tBrainSense Survey"
-                        "\n"
-                        f"\t\t{P11}\n"          # LFPmontageTimeDomain measurements
-                        "\n"
-                        f"\t\t{P2}\n"           # IndefiniteStreaming measurements
-                        "\n"
-                        f"\tBrainSense Streaming"
-                        "\n"
-                        f"\t\t{P1}\n"           # BrainSenseLfp measurements
-                        "\n"
-                        "\n"
-                        "Home measurements performed are:\n"
-                        "\n"
-                        f"\t{P3}\n"          # Event summary
-                        "\n"
-                        f"\t{P9}\n"           # Amount of events
-                        "\n"
-                        "\n"
-                        f"(Measurement downloaded on {Year}-{Month}-{Day} at {Hour}:{Minute}:{Second})\n") 
-                    t.close()
-
                 # Create list for patient with all values
                 list = [Patient, MeasureDate, StimulatorType, 
                 P6channel, P6rec, P6time,
@@ -295,9 +238,10 @@ def open_json(directory, anonymisation_key):
                 P2channel, P2rec, P2time,
                 P1DateTime, 
                 P3DateEnd, P3DateStart, P3Days, P3end, P3start, 
-                P9Events] 
-                #P4firstname, P4lastname, P4patientID]
-                new_data.append(list)   
-    return(new_data)
+                P9Events,
+                filename] 
+                #P4firstname, P4lastname, P4patientID] 
+            new_data.append(list)
+    return(new_data, data)
 
 ### create text file

@@ -11,6 +11,7 @@ Haga Hospital, The Hague
 
 Modules to download before using the code: 
 - pip install openpyxl
+- pip install xlsxwriter 
 """
 # Imports 
 import json                             # Import json module to process json files
@@ -30,6 +31,7 @@ import math as math
 
 # Import selfmade functions 
 from open_json import open_json
+from save_files import save_files
 
 import numpy as np
 
@@ -41,7 +43,8 @@ dir_sum = askdirectory()                # Show an "Open" dialog box and return t
                                         # Summarise3 folder
 # Old Data 
 od = pd.read_excel(pathlib.PurePath(dir_sum, 'output.xlsx'))    # read the .xlsx file as a panda datastruct 
-od['MeasureDate'] = pd.to_datetime(od['MeasureDate']).dt.date   # remove time from measuredate 
+if not od.empty: 
+    od['MeasureDate'] = pd.to_datetime(od['MeasureDate']).dt.date   # remove time from measuredate 
 
 old_name = 'Summarize3_archived_' +str(datetime.now().strftime("%Y-%m-%d %H.%M") )+ '.xlsx'  # Generate new name for old file that will be archived
 archive = pathlib.PurePath(dir_sum, 'Archive')              # generate Path to archive 
@@ -49,39 +52,10 @@ od.to_excel(pathlib.PurePath(archive, old_name))            # Generate new .xlsx
 
 # Anonymization Key 
 anon = pd.read_excel(pathlib.PurePath(dir_sum, 'Anonymisation.xlsx'))    # read the .xlsx file as a panda datastruct 
+ 
+directory_json = pathlib.PurePath(dir_sum, 'new_files')   
 
-# Step 2: retrieve folder with .json files and loop within folder to retrieve information and put in struct
-#Tk().withdraw()                                                 # we don't want a full GUI, so keep the root window from appearing
-#directory_json = askdirectory()                                 # show an "Open" dialog box and return the path to the selected directory 
-                                                                 # The directory should be a folder with JSON files you want to check and add to the xlsx.
-                                                               
-                                # Hidden files in macbooks. 
-    # open_json function >> is het handiger de if loop hiervoor te beginnen? Zit er nu in? Of vanaf data? 
-new_data = open_json(dir_sum, anon)
-                                # Append new row of data for each list. 
+new_data, data = open_json(directory_json, anon)
 
-nd = pd.DataFrame(new_data)                                     # Turn list with all data to datastruct
-nd.columns = ['Patient','MeasureDate', 'StimulatorType', 
-        'P6channel', 'P6rec', 'P6time',
-        'P7channel', 'P7rec', 'P7time',
-        'P11channel', 'P11rec', 'P11time', 'P11time2',
-        'P2channel', 'P2rec', 'P2time',
-        'P1DateTime', 
-        'P3DateEnd', 'P3DateStart', 'P3Days', 'P3end', 'P3start', 
-        'P9Events']
-        #'P4firstname', 'P4lastname', 'P4patientID']
-
-# Step 3: check data (doubles, arrange) 
-ad = pd.concat([od, nd], ignore_index=True)             # Concatenate old data and new data to check for doubles
-ad['Patient'] = ['NL2', 'NL3', 'NL4', 'NL2','NL1',
-                'NL4', 'NL3', 'NL6', 'NL7','NL1',
-                'NL2', 'NL5', 'NL3', 'NL4','NL7','NL4'] # Tijdelijk voor anonieme data 
-
-ad2 = ad.iloc[ad.astype(str).drop_duplicates().index]   # Drop doubles >> Return bool series to see which ones are double? 
-
-ad3 = ad2.groupby(['Patient', 'MeasureDate']).sum()     # Arrange by patient ID and Measure date 
-
-print(ad3)
-
-# Write .XLSX-file 
+save_files(new_data, od, dir_sum, directory_json)
 
