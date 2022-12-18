@@ -1,48 +1,52 @@
 """
-Python script to anonymize and store data from JSon files of patients with DBS. 
-Data extracted from the json files by means of the Summarize2.py app will be put accordingly into the main excel sheet.
-The data will also be anonymized, using a anonymization key. 
+Function for Summarise3 Script
+
+open_json: Function that opens new files and returns anonymized data from all new files in variable 'new_data' 
+
+(line 23) Step 1: Load files and paths form Summarise Folder. 
+(line 30) Step 2: Open each new file.
+(line 35) Step 2a: Retrieve desired data. 
+(line 219) Step 2b: Anonymize file. 
+(line 236) Step 3: Create list for patient with all values and add lists
 
 Author: 
 Yasmin Ben Azouz
-TM2 Intership 3
+TM2 Intership 3, November 2022
 Neurosurgery Department
 Haga Hospital, The Hague 
-
 """
-import json  # Import json module to process json files
-import os  # Import os module to create directories
-import pathlib  # import Pathlib module to create directories
+import json                             # Import json module to process json files
+import os                               # Import os module to create directories
 from datetime import date, datetime
-#import loading_path as lp
-from pathlib import Path
-from tkinter import \
-    Tk  # Import tkinter module to create window in which a file can be selected
-from tkinter.filedialog import \
-    askdirectory  # Show window to select json file to be analyzed
-from tkinter.filedialog import \
-    askopenfilename  # Show window to select json file to be analyzed
 import math as math
+import pathlib                          # import Pathlib module to create directories
+import pandas as pd
 
-def open_json(directory_json, anonymisation_key):
-    anon = anonymisation_key
+def open_json(dir_sum):
+
+    # Step 1: Load files and paths form Summarise Folder. 
+    anon = pd.read_excel(                                   # Read the .xlsx file with the Anonymization Key as a panda datastruct 
+    pathlib.PurePath(dir_sum, 'Anonymisation.xlsx'))        # Generate path within Summarise folder to the key named: 'Anonymisation.xlsx'
+
+    directory_json = pathlib.PurePath(dir_sum, 'new_files')   
+
     new_data = [] 
+    # Step 2: Open each new file   
     for filename in os.listdir(directory_json):
         f = os.path.join(directory_json, filename)
         if filename !='.DS_Store':  
-            # checking if it is a file
-            if os.path.isfile(f):
-                ## print(f)              # print current file path 
+            # Step 2a: Retrieve desired data. 
+            if os.path.isfile(f):                       # checking if it is a file
                 data = json.load(open(f))
 
                 # Merge numbers in filename 
-                P0 = filename.split('_')                 # split the filename based on underscores
-                P0[0:2] = ['_'.join(P0[0:2])]       # Merge two parts of the patients anonymous ID 
+                P0 = filename.split('_')                # split the filename based on underscores
+                P0[0:2] = ['_'.join(P0[0:2])]           # Merge two parts of the patients anonymous ID 
 
                 # Date of download (in name)
-                Year = P0[-1][0:4]                  # select the year in the Filename
-                Month = P0[-1][4:6]                 # select the month in the Filename
-                Day = P0[-1][6:8]                   # select the day in the Filename
+                Year = P0[-1][0:4]                      # select the year in the Filename
+                Month = P0[-1][4:6]                     # select the month in the Filename
+                Day = P0[-1][6:8]                       # select the day in the Filename
 
                 Hour = P0[-1][9:11]                 # select the hour in the Filename
                 Minute = P0[-1][11:13]              # select the minute in the Filename
@@ -214,7 +218,7 @@ def open_json(directory_json, anonymisation_key):
                     P4lastname = float('nan') 
                     P4patientID = float('nan')
 
-                # Anonymize
+                # Step 2b: Anonymize file. 
                 Patient = [] # create studt 
                 for index, row in anon.iterrows():  # Loop through key information 
                     if not math.isnan(row['ID']):
@@ -230,7 +234,7 @@ def open_json(directory_json, anonymisation_key):
                     # Controleren of er unknown identity staat etc? 
                     # Controleren of het een onbekende patient naam en id is? In dit geval melding geven om toe te voegen in de key? 
 
-                # Create list for patient with all values
+                # Step 3: Create list for patient with all values and add lists
                 list = [Patient, MeasureDate, StimulatorType, 
                 P6channel, P6rec, P6time,
                 P7channel, P7rec, P7time,
@@ -242,6 +246,6 @@ def open_json(directory_json, anonymisation_key):
                 filename] 
                 #P4firstname, P4lastname, P4patientID] 
             new_data.append(list)
-    return(new_data, data)
+    return(new_data)
 
 ### create text file

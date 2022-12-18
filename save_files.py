@@ -1,33 +1,49 @@
 """
-Python script to anonymize and store data from JSon files of patients with DBS. 
-Data extracted from the json files by means of the Summarize2.py app will be put accordingly into the main excel sheet.
-The data will also be anonymized, using a anonymization key. 
+Function for Summarise3 Script 
+
+save_files.py: Function that generates and saves 
+    - An anonymized JSON- and TXT-file per patient in their personal folder. 
+    - An updated Summarise .XLSX-file, with doubles removed. 
+    - An archived .XLSX-file in the archived foler. 
+
+(line 23) Step 1: Old data file to struct and new XLSX-file 
+(line 35) Step 2: Load all new data from new_files folder
+(line 48) Step 3: Check and remove doubles
+(line 57) Step 4: Go over each row (patient) of new files to generate new files. 
+(line 65) Step 4a: Create personal patient directory
+(line 77) Step 4b: Create and save new .JSON-file 
+(line 87) Step 4c: Write and save .TXT-file 
+(line 171) Step 5: Write and save new general .XLSX-file
 
 Author: 
 Yasmin Ben Azouz
-TM2 Intership 3
+TM2 Intership 3, November 2022
 Neurosurgery Department
 Haga Hospital, The Hague 
 
 """
-import json  # Import json module to process json files
-import os  # Import os module to create directories
-import pathlib  # import Pathlib module to create directories
-from datetime import date, datetime
-#import loading_path as lp
-from pathlib import Path
-from tkinter import \
-    Tk  # Import tkinter module to create window in which a file can be selected
-from tkinter.filedialog import \
-    askdirectory  # Show window to select json file to be analyzed
-from tkinter.filedialog import \
-    askopenfilename  # Show window to select json file to be analyzed
+import json                 # Import json module to process json files
+import os                   # Import os module to create directories
+import pathlib              # import Pathlib module to create directories
 import math as math
-
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
-def save_files(new_data, od, directory,directory_json):#, data):
+def save_files(new_data, directory):
+
+    # Step 1: Old data file to struct and new XLSX-file
+    od = pd.read_excel(                                             # Read the .xlsx file with old data as a panda datastruct
+    pathlib.PurePath(directory, 'output.xlsx'))                     # Generate Path within Summarise folder to output file 
+    if not od.empty: 
+        od['MeasureDate'] = pd.to_datetime(od['MeasureDate']).dt.date   # Remove time from measuredate 
+
+    old_name = 'Summarize3_archived_' +str(datetime.now().strftime("%Y-%m-%d %H.%M") )+ '.xlsx'  # Generate new name for old file that will be archived
+    archive = pathlib.PurePath(directory, 'Archive')                # Generate Path within Summarise folder to Archive folder 
+    od.to_excel(                                                    # Generate new .xlsx file for archive and add to archive folder
+    pathlib.PurePath(archive, old_name))                            # Generate new .xlsx file for archive and add to archive folder
+
+    # Step 2: Load all new data from new_files folder
     nd = pd.DataFrame(new_data)                                     # Turn list with all data to datastruct
     nd.columns = ['Patient','MeasureDate', 'StimulatorType', 
         'P6channel', 'P6rec', 'P6time',
@@ -39,29 +55,32 @@ def save_files(new_data, od, directory,directory_json):#, data):
         'P9Events',
         'Filename']
 
+    # Step 3: Check and remove doubles
     ad = pd.concat([od, nd], ignore_index=True)             # Concatenate old data and new data to check for doubles
     ad['Patient'] = ['NL2', 'NL3', 'NL4', 'NL2','NL1',
             'NL4', 'NL3', 'NL6', 'NL7','NL1',
-            'NL2', 'NL5', 'NL3', 'NL4','NL7'] # Tijdelijk voor anonieme data 
+            'NL2', 'NL5', 'NL3', 'NL4','NL7'] # Tijdelijk voor anonieme data een ID geven.
 
     ad2 = ad.iloc[ad.astype(str).drop_duplicates().index]   # Drop doubles >> Return bool series to see which ones are double? 
 
+    # Step 4: Go over each row (patient) of new files to generate new files. 
     for index, row in ad2.iterrows():
         filename = row['Filename'] 
         if not pd.isnull(filename): 
             Patient = row['Patient']
   
-            # Create personal patient directory
+            # Step 4a: Create personal patient directory
             pat_dir = pathlib.PurePath(directory,'Patients', Patient) 
             try:
                 os.makedirs(pat_dir)
             except FileExistsError:
-                pass 
+                pass
 
+            directory_json = pathlib.PurePath(directory, 'new_files')       # Directory to folder with new .JSON-files
             f = pathlib.PurePath(directory_json, filename)
             data = json.load(open(f))
 
-            # Create new .JSON-file 
+            # Step 4b: Create new .JSON-file 
             data_anon = data 
             data_anon["PatientInformation"] = Patient 
             filename_anon = filename.replace('.json', '')+'_anonymous.json'
@@ -70,7 +89,7 @@ def save_files(new_data, od, directory,directory_json):#, data):
             with open(json_name, "w") as j:
                 json.dump(data_anon, j) 
 
-            # Write .TXT-file 
+            # Step 4c: Write .TXT-file 
             filename_txt = filename.replace('.json', '')+'.txt'
             txt_name = pathlib.PurePath(pat_dir, filename_txt)
             
@@ -153,20 +172,19 @@ def save_files(new_data, od, directory,directory_json):#, data):
                     f"(Measurement downloaded on {Year}-{Month}-{Day} at {Hour}:{Minute}:{Second})\n") 
                 t.close()
 
-    # Write .XLSX-file 
-   
+    # Step 5: Write new general .XLSX-file 
     ad3 = ad2.groupby(['Patient'], observed=True, dropna=False)#.sum()     # Arrange by patient ID and Measure date 
     print(ad3)
-    #dir_xlsx = pathlib.PurePath(directory, 'output.xlsx')
+    #dir_xlsx = pathlib.PurePath(directory, 'nieuwe_output.xlsx')
     #with open(dir_xlsx, "w+") as x: 
-    #ad3.to_excel(dir_xlsx)
+        #ad3.to_excel(dir_xlsx)
 
     # Create a Pandas Excel writer using XlsxWriter as the engine.
-    writer = pd.ExcelWriter('nieuwe_output.xlsx', engine='xlsxwriter')
+    # writer = pd.ExcelWriter('nieuwe_output.xlsx', engine='xlsxwriter')
 
     # Convert the dataframe to an XlsxWriter Excel object.
-    #ad3.to_excel(writer, sheet_name='Sheet1')
+    # ad3.to_excel(writer, sheet_name='Sheet1')
 
     # Close the Pandas Excel writer and output the Excel file.
-    #writer.save()
+    # writer.save()
     return()
